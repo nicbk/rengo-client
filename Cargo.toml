@@ -1,0 +1,45 @@
+[package]
+name = "rengo-client"
+version = "0.1.0"
+authors = ["xrop <xrop@xrop.me>"]
+edition = "2018"
+description = "Rengo game client"
+license = "MIT OR Apache-2.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+rengo-common = { path = "../rengo-common" }
+wasm-bindgen = "0.2"
+js-sys = "0.3"
+console_error_panic_hook = "0.1"
+bincode = "1"
+lazy_static = "1"
+
+[dependencies.web-sys]
+version = "0.3"
+features = [
+    "Attr",
+    "Blob",
+    "ProgressEvent",
+    "console",
+    "Window",
+    "Document",
+    "Element",
+    "HtmlElement",
+    "HtmlImageElement",
+    "HtmlCanvasElement",
+    "CanvasRenderingContext2d",
+    "HtmlInputElement",
+    "Event",
+    "MouseEvent",
+    "MessageEvent",
+    "EventTarget",
+    "Node",
+    "Text",
+    "CssStyleDeclaration",
+    "FileReader",
+    "WebSocket",
+    "HtmlCollection",
+]
