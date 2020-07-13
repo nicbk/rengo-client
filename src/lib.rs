@@ -20,7 +20,7 @@ use {
         HtmlElement,
         HtmlCanvasElement,
         HtmlImageElement,
-//        HtmlCollection,
+        KeyboardEvent,
         CanvasRenderingContext2d,
         HtmlInputElement,
         WebSocket,
@@ -30,9 +30,9 @@ use {
     },
 };
 
-//macro_rules! console_log {
-//    ($($t:tt)*) => (web_sys::console::log_1(&format!($($t)*).into()))
-//}
+macro_rules! console_log {
+    ($($t:tt)*) => (web_sys::console::log_1(&format!($($t)*).into()))
+}
 
 type JsResult<T> = Result<T, JsValue>;
 type JsError = JsResult<()>;
@@ -59,6 +59,7 @@ impl Game {
         Game::set_pass_button()?;
         Game::set_quit_button()?;
         Game::set_message_button()?;
+        Game::set_enter_key()?;
         Ok(())
     }
 
@@ -1206,9 +1207,9 @@ impl Game {
 
     fn get_piece_position(x_i: i32, y_i: i32, inner_begin: f64, inner_size: f64, line_space: f64) -> Option<Position<u32>> {
         if x_i < (inner_begin - 4_f64 * inner_begin / 9_f64) as i32
-        || x_i > (inner_begin + inner_size + 4_f64 * inner_begin / 18_f64) as i32
+        || x_i > (inner_begin + inner_size + 1_f64 * inner_begin / 18_f64) as i32
         || y_i < (inner_begin - 4_f64 * inner_begin / 9_f64) as i32
-        || y_i > (inner_begin + inner_size + 4_f64 * inner_begin / 18_f64) as i32
+        || y_i > (inner_begin + inner_size + 1_f64 * inner_begin / 18_f64) as i32
         {
             return None;
         } else {
@@ -1413,10 +1414,11 @@ impl Game {
             .dyn_into::<HtmlElement>()?;
 
         let on_message = Closure::wrap(Box::new(move || {
-            let message = document.get_element_by_id("gameStatusChatInput")
+            let input_box = document.get_element_by_id("gameStatusChatInput")
                 .unwrap()
-                .dyn_into::<HtmlInputElement>()?
-                .value()
+                .dyn_into::<HtmlInputElement>()?;
+
+            let message = input_box.value()
                 .as_str()
                 .to_string();
 
@@ -1432,6 +1434,8 @@ impl Game {
 
                 let client_message = ClientMessage::Chat("<".to_owned() + &username + ">" + ": " + &message);
                 Game::ws_send_message(&client_message)?;
+
+                input_box.set_value("");
             }
 
             Ok::<(), JsValue>(())
@@ -1444,11 +1448,75 @@ impl Game {
         Ok(())
     }
 
+    fn set_enter_key() -> JsError {
+        let document = web_sys::window()
+            .unwrap()
+            .document()
+            .unwrap();
+
+        let submit_key = document.get_element_by_id("loginSubmit")
+            .unwrap()
+            .dyn_into::<HtmlInputElement>()?;
+        let login = document.get_element_by_id("loginUsername")
+            .unwrap()
+            .dyn_into::<HtmlInputElement>()?;
+        let room = document.get_element_by_id("loginRoom")
+            .unwrap()
+            .dyn_into::<HtmlInputElement>()?;
+        let server = document.get_element_by_id("loginServer")
+            .unwrap()
+            .dyn_into::<HtmlInputElement>()?;
+
+        let login_key_handler = Closure::wrap(Box::new(move |e: KeyboardEvent| {
+            console_log!("test");
+            if e.key_code() == 13 {
+                submit_key.click();
+            }
+
+            Ok::<(), JsValue>(())
+        }) as Box<dyn FnMut(KeyboardEvent) -> JsError>);
+
+        let chat_submit = document.get_element_by_id("gameStatusChatSubmit")
+            .unwrap()
+            .dyn_into::<HtmlInputElement>()?;
+
+        let chat = document.get_element_by_id("gameStatusChatInput")
+            .unwrap()
+            .dyn_into::<HtmlInputElement>()?;
+
+        let chat_key_handler = Closure::wrap(Box::new(move |e: KeyboardEvent| {
+            if e.key_code() == 13 {
+                chat_submit.click();
+            }
+
+            Ok::<(), JsValue>(())
+        }) as Box<dyn FnMut(KeyboardEvent) -> JsError>);
+
+        login.set_onkeyup(Some(login_key_handler.as_ref().unchecked_ref()));
+        room.set_onkeyup(Some(login_key_handler.as_ref().unchecked_ref()));
+        server.set_onkeyup(Some(login_key_handler.as_ref().unchecked_ref()));
+
+        chat.set_onkeyup(Some(chat_key_handler.as_ref().unchecked_ref()));
+
+        //login_key_handler.forget();
+        //chat_key_handler.forget();
+        Ok(())
+    }
+
     fn render() -> JsError {
         let document = web_sys::window()
             .unwrap()
             .document()
             .unwrap();
+
+        if let None = STATE.lock()
+            .unwrap()
+            .borrow()
+            .room
+            .as_ref()
+        {
+            return Err(JsValue::from_str("Game not initialized yet."));
+        }
 
         let board_size = *BOARD_SIZE.lock()
             .unwrap()
@@ -1602,16 +1670,23 @@ impl Game {
             .self_player
             .clone();
 
-        let player = STATE.lock()
+        let mut player: Option<Player> = None;
+
+        for other_player in STATE.lock()
             .unwrap()
             .borrow()
             .room
             .as_ref()
             .unwrap()
             .players
-            .get(&username[..])
-            .unwrap()
-            .clone();
+            .iter()
+        {
+            if other_player.0 == username {
+                player = Some(other_player.1.clone());
+            }
+        }
+
+        let player = player.unwrap();
 
         for (y, row) in STATE.lock()
             .unwrap()

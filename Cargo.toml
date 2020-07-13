@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["xrop <xrop@xrop.me>"]
 edition = "2018"
 description = "Rengo game client"
+repository = "https://gitlab.com/xrop/rengo-client.git"
 license = "MIT OR Apache-2.0"
 
 [lib]
@@ -32,6 +33,7 @@ features = [
     "HtmlCanvasElement",
     "CanvasRenderingContext2d",
     "HtmlInputElement",
+    "KeyboardEvent",
     "Event",
     "MouseEvent",
     "MessageEvent",
