@@ -12,14 +12,14 @@ crate-type = ["cdylib"]
 
 [dependencies]
 rengo-common = { path = "../rengo-common" }
-wasm-bindgen = "0.2"
-js-sys = "0.3"
-console_error_panic_hook = "0.1"
-bincode = "1"
-lazy_static = "1"
+wasm-bindgen = "0.2.64"
+js-sys = "0.3.41"
+console_error_panic_hook = "0.1.6"
+bincode = "1.3.1"
+lazy_static = "1.4.0"
 
 [dependencies.web-sys]
-version = "0.3"
+version = "0.3.41"
 features = [
     "Attr",
     "Blob",

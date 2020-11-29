@@ -172,31 +172,31 @@ impl Game {
             .unwrap();
 
         game.set_inner_html(r#"
-            <div class="row">    
-              <div class="col-8">    
-                  <canvas id="gameBoard"></canvas>    
-              </div>    
-              <div id="gameStatus" class="col-4">    
-                  <div class="jumbotron" id="gameStatusRoom">    
-                      <h1 id="gameStatusRoomTitle"></h1>    
-                      <ul class="list-group" id="gameStatusRoomPlayers">    
-                      </ul>    
-                  </div>    
-                  <div id="gameStatusChat">    
-                      <h3>Chat</h3>    
-                      <div id="gameStatusChatMessages"></div>    
-                      <form>    
-                          <div class=row>    
-                              <input type="text" class="form-control col-9" id="gameStatusChatInput" placeholder="Message">    
-                              <button type="button" class="btn btn-secondary col-3" id="gameStatusChatSubmit">Submit</button>    
-                          </div>    
-                      </form>    
-                  </div>    
-                  <div id="playOption">    
-                      <button type="button" class="btn btn-primary" id="playPass">Pass</button>    
-                      <button type="button" class="btn btn-secondary" id="playQuit">Quit</button>    
-                  </div>    
-              </div>    
+            <div class="row">
+                <div class="col-8">
+                    <canvas id="gameBoard"></canvas>
+                </div>
+                <div id="gameStatus" class="col-4">
+                    <div id="gameStatusRoom">
+                        <h1 id="gameStatusRoomTitle"></h1>
+                        <table class="table" id="gameStatusRoomPlayers">
+                        </table>
+                    </div>
+                    <div id="gameStatusChat">
+                        <h3>Chat</h3>
+                        <div id="gameStatusChatMessages"></div>
+                        <form onsubmit="return false">
+                            <div class=row>
+                                <input type="text" class="form-control col-6" id="gameStatusChatInput" placeholder="Message">
+                                <button type="button" class="btn btn-secondary col-4" id="gameStatusChatSubmit">Submit</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div id="playOption">
+                        <button type="button" class="btn btn-primary col-5" id="playPass">Pass</button>
+                        <button type="button" class="btn btn-secondary col-5" id="playQuit">Quit</button>
+                    </div>
+                </div>
             </div>
         "#);
 
@@ -208,6 +208,12 @@ impl Game {
             .unwrap()
             .document()
             .unwrap();
+
+        let server_input_box = document.get_element_by_id("loginServer")
+            .unwrap()
+            .dyn_into::<HtmlInputElement>()?;
+        
+        server_input_box.set_value("wss://rengoserver.xrop.me");
 
         let button_submit = document.get_element_by_id("loginSubmit")
             .unwrap()
@@ -1124,9 +1130,6 @@ impl Game {
         game_status_chat.style()
             .set_property("height", &format!("{}px", partial_height))?;
 
-        let pass_width = (status_width as f64 * (6_f64 / 7_f64)) as u32;
-        let quit_width = (status_width as f64 / 3_f64) as u32;
-
         let pass_button = document.get_element_by_id("playPass")
             .unwrap()
             .dyn_into::<HtmlElement>()?;
@@ -1134,25 +1137,24 @@ impl Game {
             .unwrap()
             .dyn_into::<HtmlElement>()?;
 
-        pass_button.style()
-            .set_property("height", &format!("{}px", (status_height as f64 * 1_f64 / 10_f64) as u32))?;
-        quit_button.style()
-            .set_property("height", &format!("{}px", (status_height as f64 * 1_f64 / 10_f64) as u32))?;
-
-        pass_button.style()
-            .set_property("width", &format!("{}px", pass_width))?;
-        quit_button.style()
-            .set_property("width", &format!("{}px", quit_width))?;
-
         let chat_box = document.get_element_by_id("gameStatusChatMessages")
             .unwrap()
             .dyn_into::<HtmlElement>()?;
 
         let chat_height = (partial_height as f64 * (10_f64 / 15_f64)) as u32;
-        let chat_width = (partial_height as f64 * 1.6_f64) as u32;
 
-        chat_box.style()
-            .set_property("width", &format!("{}px", chat_width))?;
+        let game_status_chat_input = document.get_element_by_id("gameStatusChatInput")
+            .unwrap()
+            .dyn_into::<HtmlElement>()?;
+
+        game_status_chat_input.style()
+            .set_property("margin-left", &format!("8%"))?;
+
+        pass_button.style()
+            .set_property("margin-top", &format!("8vh"))?;
+        quit_button.style()
+            .set_property("margin-top", &format!("8vh"))?;
+        
         chat_box.style()
             .set_property("height", &format!("{}px", chat_height))?;
 
@@ -1321,6 +1323,8 @@ impl Game {
 
         chat_area.append_child(&new_message)?;
 
+        chat_area.set_scroll_top(chat_area.scroll_height());
+
         Ok(())
     }
 
@@ -1456,7 +1460,7 @@ impl Game {
 
         let submit_key = document.get_element_by_id("loginSubmit")
             .unwrap()
-            .dyn_into::<HtmlInputElement>()?;
+            .dyn_into::<HtmlElement>()?;
         let login = document.get_element_by_id("loginUsername")
             .unwrap()
             .dyn_into::<HtmlInputElement>()?;
@@ -1468,7 +1472,6 @@ impl Game {
             .dyn_into::<HtmlInputElement>()?;
 
         let login_key_handler = Closure::wrap(Box::new(move |e: KeyboardEvent| {
-            console_log!("test");
             if e.key_code() == 13 {
                 submit_key.click();
             }
@@ -1478,7 +1481,7 @@ impl Game {
 
         let chat_submit = document.get_element_by_id("gameStatusChatSubmit")
             .unwrap()
-            .dyn_into::<HtmlInputElement>()?;
+            .dyn_into::<HtmlElement>()?;
 
         let chat = document.get_element_by_id("gameStatusChatInput")
             .unwrap()
@@ -1492,14 +1495,13 @@ impl Game {
             Ok::<(), JsValue>(())
         }) as Box<dyn FnMut(KeyboardEvent) -> JsError>);
 
-        login.set_onkeyup(Some(login_key_handler.as_ref().unchecked_ref()));
-        room.set_onkeyup(Some(login_key_handler.as_ref().unchecked_ref()));
-        server.set_onkeyup(Some(login_key_handler.as_ref().unchecked_ref()));
+        login.set_onkeydown(Some(login_key_handler.as_ref().unchecked_ref()));
+        room.set_onkeydown(Some(login_key_handler.as_ref().unchecked_ref()));
+        server.set_onkeydown(Some(login_key_handler.as_ref().unchecked_ref()));
+        chat.set_onkeydown(Some(chat_key_handler.as_ref().unchecked_ref()));
 
-        chat.set_onkeyup(Some(chat_key_handler.as_ref().unchecked_ref()));
-
-        //login_key_handler.forget();
-        //chat_key_handler.forget();
+        login_key_handler.forget();
+        chat_key_handler.forget();
         Ok(())
     }
 
