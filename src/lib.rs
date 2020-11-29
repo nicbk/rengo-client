@@ -168,37 +168,16 @@ impl Game {
             .document()
             .unwrap();
 
-        let game = document.get_element_by_id("game")
-            .unwrap();
+        let game_status_room_players = document.get_element_by_id("gameStatusRoomPlayers")
+            .unwrap()
+            .dyn_into::<HtmlElement>()?;
 
-        game.set_inner_html(r#"
-            <div class="row">
-                <div class="col-8">
-                    <canvas id="gameBoard"></canvas>
-                </div>
-                <div id="gameStatus" class="col-4">
-                    <div id="gameStatusRoom">
-                        <h1 id="gameStatusRoomTitle"></h1>
-                        <table class="table" id="gameStatusRoomPlayers">
-                        </table>
-                    </div>
-                    <div id="gameStatusChat">
-                        <h3>Chat</h3>
-                        <div id="gameStatusChatMessages"></div>
-                        <form onsubmit="return false">
-                            <div class=row>
-                                <input type="text" class="form-control col-6" id="gameStatusChatInput" placeholder="Message">
-                                <button type="button" class="btn btn-secondary col-4" id="gameStatusChatSubmit">Submit</button>
-                            </div>
-                        </form>
-                    </div>
-                    <div id="playOption">
-                        <button type="button" class="btn btn-primary col-5" id="playPass">Pass</button>
-                        <button type="button" class="btn btn-secondary col-5" id="playQuit">Quit</button>
-                    </div>
-                </div>
-            </div>
-        "#);
+        let game_status_chat_messages = document.get_element_by_id("gameStatusChatMessages")
+            .unwrap()
+            .dyn_into::<HtmlElement>()?;
+
+        game_status_room_players.set_inner_html("");
+        game_status_chat_messages.set_inner_html("");
 
         Ok(())
     }
