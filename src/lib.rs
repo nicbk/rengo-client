@@ -612,7 +612,7 @@ impl Game {
                 .dyn_into::<HtmlElement>()?;
             login_room_error.set_id("loginRoomError");
             login_room_error.set_class_name("invalid-feedback");
-            login_room_error.set_inner_text("Room name too long: Max room name is 8 characters");
+            login_room_error.set_inner_text("Room name too long: Max room name is 16 characters");
 
             let login_room_form = document.get_element_by_id("loginRoomForm")
                 .unwrap();
@@ -622,7 +622,7 @@ impl Game {
             login_room_error
                 .unwrap()
                 .dyn_into::<HtmlElement>()?
-                .set_inner_text("Room name too long: Max room name is 8 characters");
+                .set_inner_text("Room name too long: Max room name is 16 characters");
         }
 
         Ok(())
