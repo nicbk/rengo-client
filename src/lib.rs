@@ -192,7 +192,7 @@ impl Game {
             .unwrap()
             .dyn_into::<HtmlInputElement>()?;
         
-        server_input_box.set_value("wss://rengoserver.xrop.me");
+        server_input_box.set_value("wss://server.nicbk.com/rengo");
 
         let button_submit = document.get_element_by_id("loginSubmit")
             .unwrap()
